@@ -13,11 +13,11 @@
 # )
 # print(resp.text)
 
-
+#unavailable
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="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",
+    api_key="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", 
     base_url="https://openrouter.ai/api/v1"
 )
 while True:
