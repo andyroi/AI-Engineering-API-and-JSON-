@@ -17,7 +17,159 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* ── Chat Container ───────────────────────────────── */
+/* ══════════════════════════════════════════════════════
+   AUTH SCREEN
+   ══════════════════════════════════════════════════════ */
+.auth-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    inset: 0;
+    background: #f5f5f7;
+    z-index: 100;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    padding: 40px 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.auth-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #007aff, #5856d6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.auth-card h2 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+.auth-subtitle {
+    font-size: 14px;
+    color: #86868b;
+    margin-bottom: 16px;
+}
+
+.auth-card form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.auth-card input[type="email"],
+.auth-card input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #f5f5f7;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-card input:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+    background: #fff;
+}
+
+.auth-card input::placeholder {
+    color: #aeaeb2;
+}
+
+.auth-card button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: #007aff;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    margin-top: 4px;
+}
+
+.auth-card button[type="submit"]:hover {
+    background: #0066d6;
+}
+
+.auth-card button[type="submit"]:active {
+    transform: scale(0.97);
+}
+
+.auth-error {
+    color: #ff3b30;
+    font-size: 13px;
+    min-height: 18px;
+    text-align: center;
+    margin-top: 4px;
+}
+
+.auth-toggle {
+    background: none;
+    border: none;
+    color: #007aff;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 4px;
+    transition: opacity 0.2s;
+}
+
+.auth-toggle:hover {
+    opacity: 0.7;
+}
+
+/* ── Logout Button (in chat header) ───────────────── */
+.logout-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #86868b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
+    margin-left: 4px;
+}
+
+.logout-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #ff3b30;
+}
+
+/* ══════════════════════════════════════════════════════
+   CHAT UI  (unchanged from before, below)
+   ══════════════════════════════════════════════════════ */
 .chat-container {
     width: 100%;
     max-width: 720px;
@@ -472,6 +624,54 @@ body.dark .welcome p {
 
 body.dark .toggle-track {
     background: #636366;
+}
+
+/* ── Dark Mode: Auth Screen ───────────────────────── */
+body.dark .auth-screen {
+    background: #1c1c1e;
+}
+
+body.dark .auth-card {
+    background: #2c2c2e;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+body.dark .auth-card h2 {
+    color: #f5f5f7;
+}
+
+body.dark .auth-subtitle {
+    color: #98989f;
+}
+
+body.dark .auth-card input[type="email"],
+body.dark .auth-card input[type="password"] {
+    background: #1c1c1e;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f5f5f7;
+}
+
+body.dark .auth-card input:focus {
+    background: #2c2c2e;
+    border-color: #0a84ff;
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+}
+
+body.dark .auth-card input::placeholder {
+    color: #636366;
+}
+
+body.dark .auth-toggle {
+    color: #0a84ff;
+}
+
+body.dark .logout-btn {
+    color: #98989f;
+}
+
+body.dark .logout-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ff6961;
 }
 
 /* ── Responsive ───────────────────────────────────── */

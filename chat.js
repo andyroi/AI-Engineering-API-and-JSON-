@@ -40,10 +40,21 @@ async function sendMessage() { //main function sends message to backend and disp
     chatBox.scrollTop = chatBox.scrollHeight;
 
     try {
+        // Get the Firebase auth token (set by auth.js)
+        const token = getAuthToken();
+        if (!token) {
+            addMessage('You must be logged in to chat.', 'error');
+            typingIndicator.classList.remove('visible');
+            return;
+        }
+
         //AI RESPONSE
         const response = await fetch('http://localhost:5000/chat', { //'await' - pause til server reponse, 'fetch' - makes http request to make backend, localhost is URL of flask /chat endpoint
             method: 'POST', //POST means sending data TO the server
-            headers: {'Content-Type': 'application/json'}, //headers tell the server what kind of data we're sending and 'application/json' sending via JSON format
+            headers: {
+                'Content-Type': 'application/json', //headers tell the server what kind of data we're sending and 'application/json' sending via JSON format
+                'Authorization': `Bearer ${token}` // send Firebase ID token so backend knows who we are
+            },
             body: JSON.stringify({message}) //body is what we're sending, JSON.stringify - convert JavaScript object to JSON format
         }); //should contain the server's reply in 'response'
 
