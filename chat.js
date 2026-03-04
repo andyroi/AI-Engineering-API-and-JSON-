@@ -1,20 +1,24 @@
-const chatBox = document.getElementById('chat-box'); //document.get find the HTML element with id="chat-box"
-const inputBox = document.getElementById('input-box'); //document.get find the HTML element with id="input-box"
-const sendBtn = document.getElementById('send-btn'); //document.get find the HTML element with id="send-btn"
-const typingIndicator = document.getElementById('typing'); // typing dots indicator
-const welcome = document.getElementById('welcome'); // welcome splash
+const chatBox = document.getElementById('chat-box');
+const inputBox = document.getElementById('input-box');
+const sendBtn = document.getElementById('send-btn');
+const typingIndicator = document.getElementById('typing');
+const welcome = document.getElementById('welcome');
+const conversationList = document.getElementById('conversation-list');
+const newChatBtn = document.getElementById('new-chat-btn');
+const sidebarToggle = document.getElementById('sidebar-toggle');
+const sidebar = document.getElementById('sidebar');
 
-// Helper: create a chat bubble and append it
-// For AI messages we parse markdown → HTML so bold, lists, headers etc. render properly
+// ── Multi-conversation state ─────────────────────────────────
+let currentConversationId = null;
+
+// ── Helper: create a chat bubble ─────────────────────────────
 function addMessage(text, type) {
     const bubble = document.createElement('div');
     bubble.classList.add('message', type);
 
     if (type === 'ai') {
-        // Parse markdown into formatted HTML (bold, bullets, headers, etc.)
         bubble.innerHTML = marked.parse(text);
     } else {
-        // User & error messages stay as plain text (safe, no injection)
         bubble.textContent = text;
     }
 
@@ -22,80 +26,257 @@ function addMessage(text, type) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-async function sendMessage() { //main function sends message to backend and display response
-//async means function can wait for things like API responses without freezing page
+// ── Render conversation list in sidebar ──────────────────────
+function renderConversationList(conversations) {
+    conversationList.innerHTML = '';
+    conversations.forEach(conv => {
+        const tab = document.createElement('button');
+        tab.className = 'conversation-tab' + (conv.id === currentConversationId ? ' active' : '');
+        tab.dataset.id = conv.id;
 
-    //USER RESPONSE
-    const message = inputBox.value.trim(); //grabbing user value from whatever text is in input field
-    if (!message) return; //if empty do nothing and exit function
+        const title = document.createElement('span');
+        title.className = 'tab-title';
+        title.textContent = conv.title || 'New Chat';
+        tab.appendChild(title);
 
-    // Hide welcome screen on first message
-    if (welcome) welcome.style.display = 'none';
+        const del = document.createElement('button');
+        del.className = 'tab-delete';
+        del.title = 'Delete conversation';
+        del.innerHTML = '&#x2715;';
+        del.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteConversation(conv.id);
+        });
+        tab.appendChild(del);
 
-    addMessage(message, 'user'); //display the user's message as a bubble
-    inputBox.value = ''; //clear so user can type a new message
+        tab.addEventListener('click', () => switchConversation(conv.id));
+        conversationList.appendChild(tab);
+    });
+}
 
-    // Show typing indicator
+// ── Switch to a different conversation ───────────────────────
+async function switchConversation(convId) {
+    currentConversationId = convId;
+
+    document.querySelectorAll('.conversation-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.id === convId);
+    });
+
+    chatBox.innerHTML = '';
+    sidebar.classList.remove('open');
+
+    const token = getAuthToken();
+    if (!token) return;
+
+    try {
+        const res = await fetch(`http://localhost:5000/conversations/${convId}/history`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (data.history && data.history.length > 0) {
+            data.history.forEach(msg => {
+                addMessage(msg.text, msg.role === 'user' ? 'user' : 'ai');
+            });
+        } else {
+            chatBox.innerHTML = `
+                <div class="welcome" id="welcome">
+                    <h2>Hello!</h2>
+                    <p>Ask me about finance, gaming, anime, or life advice.</p>
+                </div>`;
+        }
+    } catch (err) {
+        console.warn('Could not load conversation history:', err);
+    }
+}
+
+// ── Create a new chat ────────────────────────────────────────
+async function createNewChat() {
+    const token = getAuthToken();
+    if (!token) return;
+
+    try {
+        const res = await fetch('http://localhost:5000/conversations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const data = await res.json();
+        if (data.id) {
+            currentConversationId = data.id;
+            await loadConversations();
+            await switchConversation(data.id);
+        }
+    } catch (err) {
+        console.warn('Could not create new chat:', err);
+    }
+}
+
+// ── Delete a conversation ────────────────────────────────────
+async function deleteConversation(convId) {
+    const token = getAuthToken();
+    if (!token) return;
+
+    try {
+        await fetch(`http://localhost:5000/conversations/${convId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const conversations = await fetchConversationsList();
+        renderConversationList(conversations);
+
+        if (convId === currentConversationId) {
+            if (conversations.length > 0) {
+                await switchConversation(conversations[0].id);
+            } else {
+                currentConversationId = null;
+                chatBox.innerHTML = `
+                    <div class="welcome" id="welcome">
+                        <h2>Hello!</h2>
+                        <p>Start a new chat to begin.</p>
+                    </div>`;
+            }
+        }
+    } catch (err) {
+        console.warn('Could not delete conversation:', err);
+    }
+}
+
+// ── Fetch conversations list from API ────────────────────────
+async function fetchConversationsList() {
+    const token = getAuthToken();
+    if (!token) return [];
+    try {
+        const res = await fetch('http://localhost:5000/conversations', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        return data.conversations || [];
+    } catch (err) {
+        console.warn('Could not fetch conversations:', err);
+        return [];
+    }
+}
+
+// ── Load conversations on login (called by auth.js) ──────────
+async function loadConversations() {
+    const conversations = await fetchConversationsList();
+    renderConversationList(conversations);
+
+    if (conversations.length > 0) {
+        await switchConversation(conversations[0].id);
+    } else {
+        currentConversationId = null;
+        chatBox.innerHTML = `
+            <div class="welcome" id="welcome">
+                <h2>Hello!</h2>
+                <p>Start a new chat to begin.</p>
+            </div>`;
+    }
+}
+
+// ── Send a message ───────────────────────────────────────────
+async function sendMessage() {
+    const message = inputBox.value.trim();
+    if (!message) return;
+
+    const token = getAuthToken();
+    if (!token) {
+        addMessage('You must be logged in to chat.', 'error');
+        return;
+    }
+
+    // Auto-create conversation if none active
+    if (!currentConversationId) {
+        try {
+            const res = await fetch('http://localhost:5000/conversations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await res.json();
+            if (data.id) {
+                currentConversationId = data.id;
+            } else {
+                addMessage('Could not create a new conversation.', 'error');
+                return;
+            }
+        } catch (err) {
+            addMessage('Could not reach the server.', 'error');
+            return;
+        }
+    }
+
+    const welcomeEl = document.getElementById('welcome');
+    if (welcomeEl) welcomeEl.style.display = 'none';
+
+    addMessage(message, 'user');
+    inputBox.value = '';
+
     typingIndicator.classList.add('visible');
     chatBox.scrollTop = chatBox.scrollHeight;
 
     try {
-        // Get the Firebase auth token (set by auth.js)
-        const token = getAuthToken();
-        if (!token) {
-            addMessage('You must be logged in to chat.', 'error');
-            typingIndicator.classList.remove('visible');
-            return;
-        }
-
-        //AI RESPONSE
-        const response = await fetch('http://localhost:5000/chat', { //'await' - pause til server reponse, 'fetch' - makes http request to make backend, localhost is URL of flask /chat endpoint
-            method: 'POST', //POST means sending data TO the server
+        const response = await fetch('http://localhost:5000/chat', {
+            method: 'POST',
             headers: {
-                'Content-Type': 'application/json', //headers tell the server what kind of data we're sending and 'application/json' sending via JSON format
-                'Authorization': `Bearer ${token}` // send Firebase ID token so backend knows who we are
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({message}) //body is what we're sending, JSON.stringify - convert JavaScript object to JSON format
-        }); //should contain the server's reply in 'response'
+            body: JSON.stringify({ message, conversationId: currentConversationId })
+        });
 
-        const data = await response.json(); // convert the server's JSON response into javascript obj, await - waits for conversion to finish
-        // 'data' is now javascript obj like {response: "AI's answer"}
-
-        // Hide typing indicator
+        const data = await response.json();
         typingIndicator.classList.remove('visible');
 
         if (data.error) {
-            addMessage(data.error, 'error'); //specific error
+            addMessage(data.error, 'error');
             return;
         }
         if (data.response) {
-            addMessage(data.response, 'ai'); //AI response bubble
+            addMessage(data.response, 'ai');
         } else {
             addMessage('No response from server', 'error');
         }
+
+        // If the backend returned an updated title, refresh sidebar
+        if (data.title) {
+            await loadConversations();
+            document.querySelectorAll('.conversation-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.id === currentConversationId);
+            });
+        }
     } catch (err) {
-        // Hide typing indicator on network errors too
         typingIndicator.classList.remove('visible');
         addMessage('Could not reach the server. Is it running?', 'error');
     }
 }
 
-//button or enter region
-sendBtn.addEventListener('click', sendMessage); //addeventListener waits for the event like click to happen and when even fires the "sendMessage" function will occur
-inputBox.addEventListener('keypress', (e) => { //checks if the user presses "Enter" then calls the sendMessage function
+// ── Event listeners ──────────────────────────────────────────
+sendBtn.addEventListener('click', sendMessage);
+inputBox.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
 
-// ── Dark / Light Mode Toggle ──────────────────────────
-const themeSwitch = document.getElementById('theme-switch'); // checkbox toggle in the header
+newChatBtn.addEventListener('click', createNewChat);
 
-// On load: check if user previously chose dark mode (saved in localStorage)
+sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+});
+
+// ── Dark / Light Mode Toggle ─────────────────────────────────
+const themeSwitch = document.getElementById('theme-switch');
+
 if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark');
     themeSwitch.checked = true;
 }
 
-// When the toggle changes, flip the class and remember the choice
 themeSwitch.addEventListener('change', () => {
     document.body.classList.toggle('dark');
     localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');

@@ -99,8 +99,8 @@ auth.onAuthStateChanged(async (user) => {
         authScreen.style.display   = 'none';
         chatContainer.style.display = 'flex';
 
-        // Load this user's chat history from the backend
-        await loadChatHistory();
+        // Load this user's conversation list from the backend
+        await loadConversations();
     } else {
         // User is signed out
         currentIdToken = null;
@@ -109,13 +109,15 @@ auth.onAuthStateChanged(async (user) => {
         authScreen.style.display   = 'flex';
         chatContainer.style.display = 'none';
 
-        // Clear chat bubbles for security
+        // Clear chat bubbles and sidebar for security
         const chatBox = document.getElementById('chat-box');
         chatBox.innerHTML = `
             <div class="welcome" id="welcome">
                 <h2>Hello!</h2>
                 <p>Ask me about finance, gaming, anime, or life advice.</p>
             </div>`;
+        const convList = document.getElementById('conversation-list');
+        if (convList) convList.innerHTML = '';
     }
 });
 
@@ -125,27 +127,4 @@ function getAuthToken() {
     return currentIdToken;
 }
 
-// ── Load previous chat history from backend ──────────────────
-async function loadChatHistory() {
-    if (!currentIdToken) return;
-
-    try {
-        const res = await fetch('http://localhost:5000/history', {
-            headers: { 'Authorization': `Bearer ${currentIdToken}` }
-        });
-        const data = await res.json();
-
-        if (data.history && data.history.length > 0) {
-            // Hide welcome screen since we have existing messages
-            const welcome = document.getElementById('welcome');
-            if (welcome) welcome.style.display = 'none';
-
-            // Render each saved message
-            data.history.forEach(msg => {
-                addMessage(msg.text, msg.role === 'user' ? 'user' : 'ai');
-            });
-        }
-    } catch (err) {
-        console.warn('Could not load chat history:', err);
-    }
-}
+// ── Load conversations is now in chat.js (loadConversations) ─

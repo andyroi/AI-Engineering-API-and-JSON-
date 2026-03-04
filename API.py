@@ -46,100 +46,177 @@ def verify_token(req):
     except Exception as e:
         return None, (jsonify({"error": f"Invalid token: {str(e)}"}), 401)
 
-# ── Firestore Helper: get user's chat history ─────────────────
-def get_user_history(uid):
+# ── Firestore Helpers (multi-conversation) ─────────────────────
+def get_conversations(uid):
     """
-    Fetches all messages for a user from Firestore, ordered by timestamp.
+    Returns a list of all conversations for a user, sorted newest-first.
+    Each item: {"id": "...", "title": "...", "created_at": ...}
+    """
+    convs_ref = db.collection('users').document(uid).collection('conversations')
+    docs = convs_ref.order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    result = []
+    for doc in docs:
+        d = doc.to_dict()
+        result.append({
+            "id": doc.id,
+            "title": d.get("title", "New Chat"),
+            "created_at": str(d.get("created_at", ""))
+        })
+    return result
+
+def create_conversation(uid, title="New Chat"):
+    """Creates a new conversation document and returns its ID."""
+    convs_ref = db.collection('users').document(uid).collection('conversations')
+    doc_ref = convs_ref.add({
+        'title': title,
+        'created_at': firestore.SERVER_TIMESTAMP
+    })
+    return doc_ref[1].id  # .add() returns (timestamp, doc_ref)
+
+def get_conversation_history(uid, conv_id):
+    """
+    Fetches all messages for a specific conversation, ordered by timestamp.
     Returns a list of dicts: [{"role": "user"|"model", "text": "..."}, ...]
     """
-    messages_ref = db.collection('users').document(uid).collection('messages')
-    docs = messages_ref.order_by('timestamp').stream() # get all messages sorted by time
+    messages_ref = (db.collection('users').document(uid)
+                      .collection('conversations').document(conv_id)
+                      .collection('messages'))
+    docs = messages_ref.order_by('timestamp').stream()
     return [doc.to_dict() for doc in docs]
 
-def save_message(uid, role, text):
+def save_message(uid, conv_id, role, text):
     """
-    Saves a single message (user or model) to Firestore under the user's collection.
+    Saves a single message to a specific conversation in Firestore.
     """
-    messages_ref = db.collection('users').document(uid).collection('messages')
+    messages_ref = (db.collection('users').document(uid)
+                      .collection('conversations').document(conv_id)
+                      .collection('messages'))
     messages_ref.add({
-        'role': role,         # "user" or "model"
-        'text': text,         # the message content
-        'timestamp': firestore.SERVER_TIMESTAMP # Firestore sets this to the server's current time
+        'role': role,
+        'text': text,
+        'timestamp': firestore.SERVER_TIMESTAMP
     })
 
+def update_conversation_title(uid, conv_id, title):
+    """Updates the title of a conversation (e.g., from the first user message)."""
+    doc_ref = (db.collection('users').document(uid)
+                 .collection('conversations').document(conv_id))
+    doc_ref.update({'title': title})
+
 # ── /chat endpoint ───────────────────────────────────────────
-@app.route("/chat", methods=["POST"]) # creates a route/endpoint that'll handle POST requests to /chat 
-def chat(): #will run everytime someone calls https://localhost:5000/chat with a POST request
+@app.route("/chat", methods=["POST"])
+def chat():
     # Step 1: Verify the user is logged in
     uid, error = verify_token(request)
     if error:
         return error
     
-    data = request.json #automatically converts JSON data into python dictionary
-    user_message = data.get('message', '') #get the message from the user that was sent in the POST request
+    data = request.json
+    user_message = data.get('message', '')
+    conv_id = data.get('conversationId', '')
 
-    if not user_message: #if empty
-        return jsonify({"error": "No message provided"}), 400 #if no message was sent, return an error response and 400 HTTP status code for bad request
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
+    if not conv_id:
+        return jsonify({"error": "No conversationId provided"}), 400
     
     # Step 2: Save the user's message to Firestore
-    save_message(uid, 'user', user_message)
+    save_message(uid, conv_id, 'user', user_message)
 
-    # Step 3: Build the full conversation history from Firestore
-    # This ensures the AI has context of ALL previous messages for this specific user
-    history_docs = get_user_history(uid)
+    # Step 3: Check if this is the first message — auto-set conversation title
+    history_docs = get_conversation_history(uid, conv_id)
+    if len(history_docs) == 1:  # only the message we just saved
+        # Use the first 40 chars of the user message as the conversation title
+        title = user_message[:40] + ('…' if len(user_message) > 40 else '')
+        update_conversation_title(uid, conv_id, title)
+
+    # Step 4: Build the full conversation history for Gemini
     conversation = []
     for msg in history_docs:
-        role = msg['role'] # "user" or "model"
+        role = msg['role']
         conversation.append(
             types.Content(role=role, parts=[types.Part.from_text(text=msg['text'])])
         )
 
     try:
-        # Step 4: Call Gemini with the full user-specific conversation + system prompt
+        # Step 5: Call Gemini with conversation history + system prompt
         response = client.models.generate_content(
-            model="gemini-2.5-flash", #which model to use
-            contents=conversation, #send the FULL conversation so the AI has context of previous messages
+            model="gemini-2.5-flash",
+            contents=conversation,
             config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_PROMPT # the AJ Bot personality & rules from CLAUDE.md
+                system_instruction=SYSTEM_PROMPT
             )
         )
 
         ai_text = response.text
 
-        # Step 5: Save the AI's reply to Firestore so it's part of the history next time
-        save_message(uid, 'model', ai_text)
+        # Step 6: Save the AI's reply to Firestore
+        save_message(uid, conv_id, 'model', ai_text)
+
+        # Return AI reply + possibly updated title (so frontend can update the tab)
+        title = None
+        if len(history_docs) == 1:
+            title = user_message[:40] + ('…' if len(user_message) > 40 else '')
+
+        result = {"response": ai_text}
+        if title:
+            result["title"] = title
 
         print(f"[{uid[:8]}...] {ai_text[:80]}...")
-        return jsonify({"response": ai_text}) #take the response from the model and send it back to the frontend as JSON  
+        return jsonify(result)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500 #if something goes wrong with the API call, return an error response with the error message and a 500 HTTP status code for server error
+        return jsonify({"error": str(e)}), 500
 
-# ── /history endpoint ────────────────────────────────────────
-@app.route("/history", methods=["GET"]) # GET request to load a user's chat history on page load
-def history():
+# ── /conversations endpoint (list & create) ──────────────────
+@app.route("/conversations", methods=["GET"])
+def list_conversations():
+    """Return all conversations for the authenticated user."""
+    uid, error = verify_token(request)
+    if error:
+        return error
+    convs = get_conversations(uid)
+    return jsonify({"conversations": convs})
+
+@app.route("/conversations", methods=["POST"])
+def new_conversation():
+    """Create a new conversation and return its ID."""
+    uid, error = verify_token(request)
+    if error:
+        return error
+    conv_id = create_conversation(uid)
+    return jsonify({"id": conv_id, "title": "New Chat"})
+
+# ── /conversations/<id>/history endpoint ──────────────────────
+@app.route("/conversations/<conv_id>/history", methods=["GET"])
+def conversation_history(conv_id):
+    """Return messages for a specific conversation."""
+    uid, error = verify_token(request)
+    if error:
+        return error
+    history_docs = get_conversation_history(uid, conv_id)
+    clean = [{"role": msg['role'], "text": msg['text']} for msg in history_docs]
+    return jsonify({"history": clean})
+
+# ── /conversations/<id> DELETE endpoint ───────────────────────
+@app.route("/conversations/<conv_id>", methods=["DELETE"])
+def delete_conversation(conv_id):
+    """Delete a conversation and all its messages."""
     uid, error = verify_token(request)
     if error:
         return error
 
-    history_docs = get_user_history(uid)
-    # Return messages without the Firestore timestamp (frontend doesn't need it)
-    clean_history = [{"role": msg['role'], "text": msg['text']} for msg in history_docs]
-    return jsonify({"history": clean_history})
-
-# ── /reset endpoint ──────────────────────────────────────────
-@app.route("/reset", methods=["POST"]) # endpoint to clear conversation history and start fresh
-def reset():
-    uid, error = verify_token(request)
-    if error:
-        return error
-
-    # Delete all messages in this user's Firestore collection
-    messages_ref = db.collection('users').document(uid).collection('messages')
+    # Delete all messages in the conversation
+    messages_ref = (db.collection('users').document(uid)
+                      .collection('conversations').document(conv_id)
+                      .collection('messages'))
     docs = messages_ref.stream()
     for doc in docs:
         doc.reference.delete()
 
-    return jsonify({"status": "Conversation history cleared"})
+    # Delete the conversation document itself
+    db.collection('users').document(uid).collection('conversations').document(conv_id).delete()
+
+    return jsonify({"status": "Conversation deleted"})
     
 if __name__ == "__main__": #only run when excute "API.py" directly, not when imported as a module
     app.run(debug=True, port = 5000) #start the flask server in debug mode (auto restarts when code changes and provides error messages in the browser)
