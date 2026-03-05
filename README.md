@@ -109,8 +109,8 @@ The Gemini model receives a custom system prompt (defined in `CLAUDE.md`) that g
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/YOUR-USERNAME/AI-Engineering-API-and-JSON-.git
-cd AI-Engineering-API-and-JSON-
+git clone https://github.com/YOUR-USERNAME/AJ-BOT.git
+cd AJ-BOT
 ```
 
 ### 2. Install Python dependencies
