@@ -5,21 +5,12 @@ An AI-powered chatbot built with Google's Gemini 2.5 Flash model, featuring a mo
 ---
 
 ## Screenshots
-
-<!-- 
-HOW TO ADD SCREENSHOTS:
-1. Take screenshots of your pages (landing, login, chat)
-2. Create a folder called "screenshots" in your project root
-3. Drop the images in there (e.g. landing.png, login.png, chat.png)
-4. Uncomment the lines below and they will display in your README
-
-Alternatively, drag & drop images directly into the README editor on GitHub — 
-it will auto-upload them and generate the markdown for you.
--->
-
+### Front Page
 ![Landing Page](screenshots/landing.png)
+### Login Page
 ![Login Screen](screenshots/login.png)
- ![Chat Interface](screenshots/chat.png) 
+### Chat Page
+![Chat Interface](screenshots/chat.png) 
 
 ---
 
