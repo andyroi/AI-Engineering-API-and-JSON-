@@ -269,15 +269,3 @@ sidebarToggle.addEventListener('click', () => {
     sidebar.classList.toggle('open');
 });
 
-// ── Dark / Light Mode Toggle ─────────────────────────────────
-const themeSwitch = document.getElementById('theme-switch');
-
-if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark');
-    themeSwitch.checked = true;
-}
-
-themeSwitch.addEventListener('change', () => {
-    document.body.classList.toggle('dark');
-    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-});

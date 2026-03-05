@@ -15,20 +15,40 @@
 
     <!-- ── Auth Screen (shown when logged out) ──────────────── -->
     <div class="auth-screen" id="auth-screen">
+        <!-- Gradient blobs (matches landing page) -->
+        <div class="auth-blur" aria-hidden="true">
+            <div class="auth-blob auth-blob-1"></div>
+            <div class="auth-blob auth-blob-2"></div>
+            <div class="auth-blob auth-blob-3"></div>
+        </div>
+
         <div class="auth-card">
             <div class="auth-logo">AJ</div>
             <h2 id="auth-title">Welcome Back</h2>
             <p class="auth-subtitle">Sign in to chat with AJ Bot</p>
 
             <form id="auth-form" autocomplete="off">
-                <input type="email"    id="auth-email"    placeholder="Email" required>
-                <input type="password" id="auth-password" placeholder="Password" required>
-                <button type="submit"  id="auth-submit">Log In</button>
+                <div class="formField">
+                    <input type="email" id="auth-email" autocomplete="username" required>
+                    <span>Email</span>
+                </div>
+                <div class="formField">
+                    <input type="password" id="auth-password" autocomplete="current-password" required>
+                    <span>Password</span>
+                </div>
+                <button type="submit" id="auth-submit">Log In</button>
             </form>
 
             <p class="auth-error" id="auth-error"></p>
             <button class="auth-toggle" id="auth-toggle">Don't have an account? Sign up</button>
         </div>
+    </div>
+
+    <!-- ── Chat backdrop blobs (visible behind chat app) ────── -->
+    <div class="chat-blur" id="chat-blur" aria-hidden="true">
+        <div class="chat-blob chat-blob-1"></div>
+        <div class="chat-blob chat-blob-2"></div>
+        <div class="chat-blob chat-blob-3"></div>
     </div>
 
     <!-- ── Chat App (shown when logged in) ──────────────────── -->
@@ -67,14 +87,6 @@
                     <h1>AJ Bot</h1>
                     <span>Online</span>
                 </div>
-                <!-- Dark / Light toggle -->
-                <label class="theme-toggle" title="Toggle dark mode">
-                    <input type="checkbox" id="theme-switch">
-                    <span class="toggle-track">
-                        <span class="icon sun">☀️</span>
-                        <span class="icon moon">🌙</span>
-                    </span>
-                </label>
                 <!-- Logout button -->
                 <button id="logout-btn" class="logout-btn" title="Log out">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

@@ -22,6 +22,7 @@ const auth = firebase.auth(); // Firebase Auth instance
 // ── DOM Elements ─────────────────────────────────────────────
 const authScreen       = document.getElementById('auth-screen');
 const chatContainer    = document.getElementById('chat-app');        // the whole chat UI
+const chatBlur         = document.getElementById('chat-blur');       // chat backdrop blobs
 const authForm         = document.getElementById('auth-form');
 const authEmail        = document.getElementById('auth-email');
 const authPassword     = document.getElementById('auth-password');
@@ -98,6 +99,7 @@ auth.onAuthStateChanged(async (user) => {
         // Show chat, hide auth screen
         authScreen.style.display   = 'none';
         chatContainer.style.display = 'flex';
+        chatBlur.style.display      = 'block';
 
         // Load this user's conversation list from the backend
         await loadConversations();
@@ -108,6 +110,7 @@ auth.onAuthStateChanged(async (user) => {
         // Show auth screen, hide chat
         authScreen.style.display   = 'flex';
         chatContainer.style.display = 'none';
+        chatBlur.style.display      = 'none';
 
         // Clear chat bubbles and sidebar for security
         const chatBox = document.getElementById('chat-box');

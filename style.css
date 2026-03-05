@@ -8,13 +8,14 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
                  "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #f5f5f7;
-    color: #1d1d1f;
+    background: #0a0a0f;
+    color: #f5f5f7;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     -webkit-font-smoothing: antialiased;
+    overflow: hidden;
 }
 
 /* ══════════════════════════════════════════════════════
@@ -26,16 +27,124 @@ body {
     align-items: center;
     position: fixed;
     inset: 0;
-    background: #f5f5f7;
+    background: #0a0a0f;
     z-index: 100;
+    overflow: hidden;
+}
+
+/* ── Gradient blobs (same palette as landing) ────── */
+.auth-blur {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.auth-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.4;
+}
+
+.auth-blob-1 {
+    width: 500px;
+    height: 500px;
+    top: -15%;
+    left: -10%;
+    background: hsl(220, 72%, 52%);
+    animation: authFloat1 8s ease-in-out infinite;
+}
+
+.auth-blob-2 {
+    width: 400px;
+    height: 400px;
+    top: 40%;
+    right: -8%;
+    background: hsl(260, 65%, 48%);
+    animation: authFloat2 10s ease-in-out infinite;
+}
+
+.auth-blob-3 {
+    width: 350px;
+    height: 350px;
+    bottom: -10%;
+    left: 35%;
+    background: hsl(300, 60%, 45%);
+    animation: authFloat3 9s ease-in-out infinite;
+}
+
+@keyframes authFloat1 {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(30px, 20px); }
+}
+@keyframes authFloat2 {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(-20px, -25px); }
+}
+@keyframes authFloat3 {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(15px, -15px); }
+}
+
+/* ════════════════════════════════════════════════════════
+   CHAT BACKDROP BLOBS (behind app-layout)
+   ════════════════════════════════════════════════════════ */
+.chat-blur {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    display: none;
+}
+
+.chat-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.35;
+}
+
+.chat-blob-1 {
+    width: 500px;
+    height: 500px;
+    top: -12%;
+    left: -8%;
+    background: hsl(220, 72%, 52%);
+    animation: authFloat1 8s ease-in-out infinite;
+}
+
+.chat-blob-2 {
+    width: 400px;
+    height: 400px;
+    top: 45%;
+    right: -6%;
+    background: hsl(260, 65%, 48%);
+    animation: authFloat2 10s ease-in-out infinite;
+}
+
+.chat-blob-3 {
+    width: 350px;
+    height: 350px;
+    bottom: -8%;
+    left: 40%;
+    background: hsl(300, 60%, 45%);
+    animation: authFloat3 9s ease-in-out infinite;
 }
 
 .auth-card {
+    position: relative;
+    z-index: 1;
     width: 100%;
     max-width: 400px;
-    background: #ffffff;
-    border-radius: 20px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     padding: 40px 36px;
     display: flex;
     flex-direction: column;
@@ -61,11 +170,12 @@ body {
     font-size: 22px;
     font-weight: 600;
     letter-spacing: -0.3px;
+    color: #f5f5f7;
 }
 
 .auth-subtitle {
     font-size: 14px;
-    color: #86868b;
+    color: #98989f;
     margin-bottom: 16px;
 }
 
@@ -76,32 +186,67 @@ body {
     gap: 12px;
 }
 
-.auth-card input[type="email"],
-.auth-card input[type="password"] {
+/* ── Floating-label inputs (dark by default) ─────── */
+.auth-card .formField {
+    margin: 4px 0;
+    position: relative;
     width: 100%;
-    padding: 12px 16px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    font-size: 15px;
-    font-family: inherit;
-    background: #f5f5f7;
+}
+
+.auth-card .formField input {
+    width: 100%;
+    padding: 20px 15px 10px 15px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    border: none;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #f5f5f7;
+    font-size: 16px;
+    font-weight: 550;
+    font-family: inherit;
+    transition: 0.3s ease-in-out;
+    box-shadow: 0 0 0 5px transparent;
 }
 
-.auth-card input:focus {
-    border-color: #007aff;
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
-    background: #fff;
+.auth-card .formField input:hover,
+.auth-card .formField input:focus {
+    box-shadow: 0 0 0 2px #007aff;
+    background-color: rgba(255, 255, 255, 0.12);
 }
 
-.auth-card input::placeholder {
-    color: #aeaeb2;
+/* Override browser autofill background */
+.auth-card .formField input:-webkit-autofill,
+.auth-card .formField input:-webkit-autofill:hover,
+.auth-card .formField input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #1a1a2e inset;
+    -webkit-text-fill-color: #f5f5f7;
+    caret-color: #f5f5f7;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.auth-card .formField span {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 15px 15px;
+    color: rgba(245, 245, 247, 0.4);
+    font-size: 15px;
+    font-weight: 600;
+    text-shadow: none;
+    transition: 0.3s ease-in-out;
+    pointer-events: none;
+}
+
+.auth-card .formField input:focus + span,
+.auth-card .formField input:valid + span,
+.auth-card .formField input:-webkit-autofill + span {
+    transform: translateY(-12px) translateX(-5px) scale(0.85);
+    color: #007aff;
 }
 
 .auth-card button[type="submit"] {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     border: none;
     border-radius: 12px;
     background: #007aff;
@@ -110,12 +255,14 @@ body {
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
-    transition: background 0.2s, transform 0.15s;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.25s;
     margin-top: 4px;
+    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.25);
 }
 
 .auth-card button[type="submit"]:hover {
     background: #0066d6;
+    box-shadow: 0 4px 24px rgba(0, 122, 255, 0.45);
 }
 
 .auth-card button[type="submit"]:active {
@@ -123,7 +270,7 @@ body {
 }
 
 .auth-error {
-    color: #ff3b30;
+    color: #ff6961;
     font-size: 13px;
     min-height: 18px;
     text-align: center;
@@ -133,7 +280,7 @@ body {
 .auth-toggle {
     background: none;
     border: none;
-    color: #007aff;
+    color: #0a84ff;
     font-size: 14px;
     font-family: inherit;
     cursor: pointer;
@@ -152,19 +299,19 @@ body {
     border-radius: 50%;
     border: none;
     background: transparent;
-    color: #86868b;
+    color: #98989f;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.2s, color 0.2s;
     flex-shrink: 0;
-    margin-left: 4px;
+    margin-left: auto;
 }
 
 .logout-btn:hover {
-    background: rgba(0, 0, 0, 0.06);
-    color: #ff3b30;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ff6961;
 }
 
 /* ══════════════════════════════════════════════════════
@@ -172,21 +319,26 @@ body {
    ══════════════════════════════════════════════════════ */
 .app-layout {
     width: 100%;
-    max-width: 960px;
-    height: 90vh;
+    max-width: 1600px;
+    height: 95vh;
     display: flex;
     border-radius: 20px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
     overflow: hidden;
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    z-index: 1;
 }
 
 /* ── Sidebar ────────────────────────────────────── */
 .sidebar {
     width: 260px;
     min-width: 260px;
-    background: #f0f0f5;
-    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -202,6 +354,7 @@ body {
 .sidebar-header h2 {
     font-size: 17px;
     font-weight: 600;
+    color: #f5f5f7;
 }
 
 .new-chat-btn {
@@ -240,7 +393,7 @@ body {
     width: 4px;
 }
 .conversation-list::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.12);
+    background: rgba(255, 255, 255, 0.12);
     border-radius: 2px;
 }
 
@@ -252,7 +405,7 @@ body {
     border-radius: 10px;
     border: none;
     background: transparent;
-    color: #1d1d1f;
+    color: #f5f5f7;
     font-size: 14px;
     font-family: inherit;
     cursor: pointer;
@@ -263,11 +416,11 @@ body {
 }
 
 .conversation-tab:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .conversation-tab.active {
-    background: #007aff;
+    background: #0a84ff;
     color: #ffffff;
 }
 
@@ -318,7 +471,7 @@ body {
     border-radius: 8px;
     border: none;
     background: transparent;
-    color: #86868b;
+    color: #98989f;
     cursor: pointer;
     align-items: center;
     justify-content: center;
@@ -326,7 +479,7 @@ body {
 }
 
 .sidebar-toggle:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 /* ══════════════════════════════════════════════════════
@@ -336,7 +489,7 @@ body {
     flex: 1;
     min-width: 0;
     height: 100%;
-    background: #ffffff;
+    background: transparent;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -345,10 +498,10 @@ body {
 /* ── Header ───────────────────────────────────────── */
 .chat-header {
     padding: 20px 28px;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(20, 20, 25, 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     gap: 14px;
@@ -372,11 +525,12 @@ body {
     font-size: 17px;
     font-weight: 600;
     letter-spacing: -0.2px;
+    color: #f5f5f7;
 }
 
 .chat-header .header-info span {
     font-size: 13px;
-    color: #86868b;
+    color: #98989f;
 }
 
 /* ── Chat Area ────────────────────────────────────── */
@@ -398,7 +552,7 @@ body {
     background: transparent;
 }
 #chat-box::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 3px;
 }
 
@@ -422,8 +576,8 @@ body {
 
 .message.ai {
     align-self: flex-start;
-    background: #f0f0f5;
-    color: #1d1d1f;
+    background: rgba(255, 255, 255, 0.08);
+    color: #f5f5f7;
     border-bottom-left-radius: 6px;
 }
 
@@ -458,7 +612,7 @@ body {
 }
 
 .message.ai code {
-    background: rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.1);
     padding: 2px 6px;
     border-radius: 4px;
     font-family: "SF Mono", Menlo, Consolas, monospace;
@@ -466,7 +620,7 @@ body {
 }
 
 .message.ai pre {
-    background: rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.08);
     padding: 12px;
     border-radius: 8px;
     overflow-x: auto;
@@ -479,31 +633,17 @@ body {
 }
 
 .message.ai blockquote {
-    border-left: 3px solid #007aff;
+    border-left: 3px solid #0a84ff;
     padding-left: 12px;
     margin: 8px 0;
-    color: #636366;
-}
-
-/* Dark mode overrides for markdown content */
-body.dark .message.ai code {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-body.dark .message.ai pre {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-body.dark .message.ai blockquote {
-    border-left-color: #0a84ff;
     color: #98989f;
 }
 
 .message.error {
     align-self: flex-start;
-    background: #fff0f0;
-    color: #ff3b30;
-    border: 1px solid rgba(255, 59, 48, 0.15);
+    background: rgba(255, 59, 48, 0.1);
+    color: #ff6961;
+    border: 1px solid rgba(255, 105, 97, 0.2);
     border-bottom-left-radius: 6px;
 }
 
@@ -526,7 +666,7 @@ body.dark .message.ai blockquote {
     display: none;
     align-self: flex-start;
     padding: 12px 18px;
-    background: #f0f0f5;
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 18px;
     border-bottom-left-radius: 6px;
     gap: 5px;
@@ -540,7 +680,7 @@ body.dark .message.ai blockquote {
 .typing-indicator span {
     width: 8px;
     height: 8px;
-    background: #86868b;
+    background: #98989f;
     border-radius: 50%;
     animation: typingDot 1.4s infinite;
 }
@@ -556,10 +696,10 @@ body.dark .message.ai blockquote {
 /* ── Input Bar ────────────────────────────────────── */
 .input-bar {
     padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(20, 20, 25, 0.7);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -568,23 +708,24 @@ body.dark .message.ai blockquote {
 #input-box {
     flex: 1;
     padding: 12px 18px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
     font-size: 15px;
     font-family: inherit;
-    background: #f5f5f7;
+    background: rgba(255, 255, 255, 0.06);
+    color: #f5f5f7;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 #input-box:focus {
-    border-color: #007aff;
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
-    background: #ffffff;
+    border-color: #0a84ff;
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 #input-box::placeholder {
-    color: #aeaeb2;
+    color: #636366;
 }
 
 #send-btn {
@@ -630,7 +771,7 @@ body.dark .message.ai blockquote {
     justify-content: center;
     flex: 1;
     gap: 8px;
-    color: #86868b;
+    color: #98989f;
     text-align: center;
     padding: 24px;
 }
@@ -638,238 +779,12 @@ body.dark .message.ai blockquote {
 .welcome h2 {
     font-size: 22px;
     font-weight: 600;
-    color: #1d1d1f;
+    color: #f5f5f7;
 }
 
 .welcome p {
     font-size: 15px;
-}
-
-/* ── Theme Toggle Switch ────────────────────────── */
-.theme-toggle {
-    margin-left: auto;
-    position: relative;
-    width: 52px;
-    height: 28px;
-    flex-shrink: 0;
-}
-
-.theme-toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.toggle-track {
-    position: absolute;
-    inset: 0;
-    background: #e0e0e5;
-    border-radius: 14px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.toggle-track::before {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 22px;
-    height: 22px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    transition: transform 0.3s;
-}
-
-.theme-toggle input:checked + .toggle-track {
-    background: #007aff;
-}
-
-.theme-toggle input:checked + .toggle-track::before {
-    transform: translateX(24px);
-}
-
-/* Sun / Moon icons inside track */
-.toggle-track .icon {
-    position: absolute;
-    top: 5px;
-    font-size: 14px;
-    line-height: 18px;
-    transition: opacity 0.3s;
-    user-select: none;
-}
-
-.toggle-track .icon.sun  { left: 6px;  opacity: 1; }
-.toggle-track .icon.moon { right: 6px; opacity: 0; }
-
-.theme-toggle input:checked + .toggle-track .icon.sun  { opacity: 0; }
-.theme-toggle input:checked + .toggle-track .icon.moon { opacity: 1; }
-
-/* ── Dark Mode Overrides ───────────────────────────── */
-body.dark {
-    background: #1c1c1e;
-    color: #f5f5f7;
-}
-
-body.dark .chat-container {
-    background: #2c2c2e;
-}
-
-body.dark .app-layout {
-    background: #2c2c2e;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
-}
-
-/* ── Dark Mode: Sidebar ─────────────────────────── */
-body.dark .sidebar {
-    background: #1c1c1e;
-    border-right-color: rgba(255, 255, 255, 0.08);
-}
-
-body.dark .sidebar-header h2 {
-    color: #f5f5f7;
-}
-
-body.dark .conversation-tab {
-    color: #f5f5f7;
-}
-
-body.dark .conversation-tab:hover {
-    background: rgba(255, 255, 255, 0.06);
-}
-
-body.dark .conversation-tab.active {
-    background: #0a84ff;
-}
-
-body.dark .conversation-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
-}
-
-body.dark .sidebar-toggle {
     color: #98989f;
-}
-
-body.dark .sidebar-toggle:hover {
-    background: rgba(255, 255, 255, 0.08);
-}
-
-body.dark .chat-header {
-    background: rgba(44, 44, 46, 0.85);
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-}
-
-body.dark .chat-header .header-info h1 {
-    color: #f5f5f7;
-}
-
-body.dark .chat-header .header-info span {
-    color: #98989f;
-}
-
-body.dark #chat-box::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-body.dark .message.ai {
-    background: #3a3a3c;
-    color: #f5f5f7;
-}
-
-body.dark .message.error {
-    background: #3a2020;
-    color: #ff6961;
-    border-color: rgba(255, 105, 97, 0.2);
-}
-
-body.dark .typing-indicator {
-    background: #3a3a3c;
-}
-
-body.dark .typing-indicator span {
-    background: #98989f;
-}
-
-body.dark .input-bar {
-    background: rgba(44, 44, 46, 0.85);
-    border-top-color: rgba(255, 255, 255, 0.08);
-}
-
-body.dark #input-box {
-    background: #1c1c1e;
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #f5f5f7;
-}
-
-body.dark #input-box:focus {
-    background: #2c2c2e;
-    border-color: #0a84ff;
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
-}
-
-body.dark #input-box::placeholder {
-    color: #636366;
-}
-
-body.dark .welcome h2 {
-    color: #f5f5f7;
-}
-
-body.dark .welcome p {
-    color: #98989f;
-}
-
-body.dark .toggle-track {
-    background: #636366;
-}
-
-/* ── Dark Mode: Auth Screen ───────────────────────── */
-body.dark .auth-screen {
-    background: #1c1c1e;
-}
-
-body.dark .auth-card {
-    background: #2c2c2e;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
-}
-
-body.dark .auth-card h2 {
-    color: #f5f5f7;
-}
-
-body.dark .auth-subtitle {
-    color: #98989f;
-}
-
-body.dark .auth-card input[type="email"],
-body.dark .auth-card input[type="password"] {
-    background: #1c1c1e;
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #f5f5f7;
-}
-
-body.dark .auth-card input:focus {
-    background: #2c2c2e;
-    border-color: #0a84ff;
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
-}
-
-body.dark .auth-card input::placeholder {
-    color: #636366;
-}
-
-body.dark .auth-toggle {
-    color: #0a84ff;
-}
-
-body.dark .logout-btn {
-    color: #98989f;
-}
-
-body.dark .logout-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ff6961;
 }
 
 /* ── Responsive ───────────────────────────────────── */
@@ -881,6 +796,7 @@ body.dark .logout-btn:hover {
         max-width: 100%;
         border-radius: 0;
         box-shadow: none;
+        border: none;
         position: relative;
     }
 
@@ -892,7 +808,10 @@ body.dark .logout-btn:hover {
         z-index: 50;
         transform: translateX(-100%);
         transition: transform 0.25s ease;
-        box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
+        box-shadow: 4px 0 16px rgba(0, 0, 0, 0.4);
+        background: rgba(15, 15, 20, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
     }
 
     .sidebar.open {
