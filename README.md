@@ -17,9 +17,9 @@ Alternatively, drag & drop images directly into the README editor on GitHub —
 it will auto-upload them and generate the markdown for you.
 -->
 
-<!-- ![Landing Page](screenshots/landing.png) -->
-<!-- ![Login Screen](screenshots/login.png) -->
-<!-- ![Chat Interface](screenshots/chat.png) -->
+![Landing Page](screenshots/landing.png)
+![Login Screen](screenshots/login.png)
+ ![Chat Interface](screenshots/chat.png) 
 
 ---
 
