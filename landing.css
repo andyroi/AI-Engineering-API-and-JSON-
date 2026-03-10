@@ -99,6 +99,23 @@ a {
     letter-spacing: -0.3px;
 }
 
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-about {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(245, 245, 247, 0.6);
+    transition: color 0.2s;
+}
+
+.nav-about:hover {
+    color: #f5f5f7;
+}
+
 .nav-login {
     font-size: 14px;
     font-weight: 600;

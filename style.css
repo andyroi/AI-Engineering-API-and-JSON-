@@ -347,6 +347,29 @@ body {
     color: #f5f5f7;
 }
 
+/* ── About Button (in chat header) ───────────────── */
+.about-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #98989f;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
+    text-decoration: none;
+    margin-left: 4px;
+}
+
+.about-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f5f5f7;
+}
+
 /* ── Logout Button (in chat header) ───────────────── */
 .logout-btn {
     width: 36px;
